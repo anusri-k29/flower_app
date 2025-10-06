@@ -6,18 +6,18 @@ import base64
 
 app = Flask(__name__)
 
-# Ensure upload folder exists
+# Folders
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# HF Spaces API endpoint (Gradio proper endpoint)
-HF_API_URL = "https://anusrii29-flower-model.hf.space/api/predict"
+# Hugging Face Spaces endpoint
+HF_API_URL = "https://anusrii29-flower-model.hf.space/predict"
 
 # Class names JSON URL from Hugging Face
 CLASS_NAMES_URL = "https://huggingface.co/anusrii29/plant_id/resolve/main/class_names.json"
 CLASS_NAMES = None
 
-# Load class names dynamically from HF
+# Load class names from HF
 def load_class_names():
     global CLASS_NAMES
     if CLASS_NAMES is not None:
@@ -44,18 +44,18 @@ def predict():
     if file.filename == '':
         return {"error": "No selected file"}, 400
 
-    # Save image temporarily
+    # Save uploaded image
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
-    # Convert image to base64 for HF Spaces API
+    # Convert to base64
     with open(file_path, "rb") as f:
         img_b64 = "data:image/jpeg;base64," + base64.b64encode(f.read()).decode("utf-8")
 
-    # Gradio expects {"data": [<image_base64>], "fn_index": 0}
+    # Payload for HF Spaces
     payload = {
         "data": [img_b64],
-        "fn_index": 0
+        "fn_index": 0  # usually 0 for single prediction
     }
 
     try:
@@ -63,26 +63,19 @@ def predict():
         response.raise_for_status()
         result = response.json()
 
-        # HF Spaces may return predictions as a list, handle accordingly
-        # Example: {"data": [["Rose", 0.95]]}
-        prediction_data = result.get("data", [])
-        if prediction_data and isinstance(prediction_data[0], list):
-            top_flower = prediction_data[0][0]
-            confidence = prediction_data[0][1]
-        else:
-            top_flower = "Unknown"
-            confidence = 0.0
+        # Expected format: {"data": [["Rose", 0.95]]}
+        predictions = result.get("data", [[]])[0]
+        top_flower = predictions[0] if len(predictions) > 0 else "Unknown"
+        confidence = predictions[1] if len(predictions) > 1 else 0.0
 
-        # Load class names from HF if not loaded
+        # Map using class_names.json if index returned
         classes = load_class_names()
         if isinstance(classes, dict) and "flower" in classes:
-            classes = classes["flower"]  # handle dict structure
+            classes = classes["flower"]
 
-        # Map prediction to class name if possible
-        if classes and top_flower.isdigit():
+        if classes and str(top_flower).isdigit():
             top_flower = classes[int(top_flower)]
 
-        # Render result page
         return render_template("result.html", image_path=file_path, result=top_flower, confidence=confidence)
 
     except requests.exceptions.RequestException as e:
