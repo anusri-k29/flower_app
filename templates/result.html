@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌸 Flower Prediction Result</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fff5f7;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 {
+      color: #d63384;
+      font-size: 2em;
+    }
+    img {
+      max-width: 300px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    .result-box {
+      margin-top: 20px;
+      display: inline-block;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #eee;
+      width: 320px;
+      word-wrap: break-word;
+      font-family: monospace;
+      text-align: left;
+    }
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      color: #d63384;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌼 Flower Prediction Result</h1>
+  <img src="{{ image_path }}" alt="Uploaded Image">
+  <div class="result-box">
+    <strong>Predicted Flower:</strong> {{ result }}<br>
+    <strong>Confidence:</strong> {{ confidence*100 | round(2) }}%
+  </div>
+  <a href="/">⬅️ Upload Another Image</a>
+</body>
+</html>
