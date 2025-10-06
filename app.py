@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # ✅ Replace with your actual Hugging Face Space API URL
 # Example: "https://anusrii29-flower-model.hf.space/api/predict"
-HF_API_URL = "https://anusrii29-flower-model.hf.space/api/predict"
+HF_API_URL = "https://anusrii29-flower-model.hf.space/run/predict"
 
 # Ensure static folder for image uploads exists
 UPLOAD_FOLDER = "static/uploads"
