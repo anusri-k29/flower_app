@@ -2,22 +2,21 @@ from flask import Flask, request, render_template
 import requests
 import os
 import json
-import base64
 
 app = Flask(__name__)
 
-# Folders
+# Ensure upload folder exists
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Hugging Face Spaces endpoint
+# HF Spaces API endpoint
 HF_API_URL = "https://anusrii29-flower-model.hf.space/predict"
 
 # Class names JSON URL from Hugging Face
 CLASS_NAMES_URL = "https://huggingface.co/anusrii29/plant_id/resolve/main/class_names.json"
 CLASS_NAMES = None
 
-# Load class names from HF
+# Load class names dynamically from HF
 def load_class_names():
     global CLASS_NAMES
     if CLASS_NAMES is not None:
@@ -48,27 +47,18 @@ def predict():
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
-    # Convert to base64
-    with open(file_path, "rb") as f:
-        img_b64 = "data:image/jpeg;base64," + base64.b64encode(f.read()).decode("utf-8")
-
-    # Payload for HF Spaces
-    payload = {
-        "data": [img_b64],
-        "fn_index": 0  # usually 0 for single prediction
-    }
+    # Send raw file as multipart/form-data to HF Spaces API
+    files = {"file": (file.filename, open(file_path, "rb"), "image/jpeg")}
 
     try:
-        response = requests.post(HF_API_URL, json=payload)
+        response = requests.post(HF_API_URL, files=files)
         response.raise_for_status()
         result = response.json()
 
-        # Expected format: {"data": [["Rose", 0.95]]}
-        predictions = result.get("data", [[]])[0]
-        top_flower = predictions[0] if len(predictions) > 0 else "Unknown"
-        confidence = predictions[1] if len(predictions) > 1 else 0.0
+        top_flower = result.get("flowerName", "Unknown")
+        confidence = result.get("confidence", 0.0)
 
-        # Map using class_names.json if index returned
+        # Map prediction to class names if available
         classes = load_class_names()
         if isinstance(classes, dict) and "flower" in classes:
             classes = classes["flower"]
