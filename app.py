@@ -10,8 +10,8 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# HF Spaces API endpoint
-HF_API_URL = "https://anusrii29-flower-model.hf.space/predict"
+# HF Spaces API endpoint (Gradio proper endpoint)
+HF_API_URL = "https://anusrii29-flower-model.hf.space/api/predict"
 
 # Class names JSON URL from Hugging Face
 CLASS_NAMES_URL = "https://huggingface.co/anusrii29/plant_id/resolve/main/class_names.json"
@@ -52,16 +52,26 @@ def predict():
     with open(file_path, "rb") as f:
         img_b64 = "data:image/jpeg;base64," + base64.b64encode(f.read()).decode("utf-8")
 
-    payload = {"data": [img_b64]}
+    # Gradio expects {"data": [<image_base64>], "fn_index": 0}
+    payload = {
+        "data": [img_b64],
+        "fn_index": 0
+    }
 
     try:
         response = requests.post(HF_API_URL, json=payload)
         response.raise_for_status()
         result = response.json()
 
-        # HF Spaces returns {"flowerName": "...", "confidence": ..., "predictions": [...]}
-        top_flower = result.get("flowerName", "Unknown")
-        confidence = result.get("confidence", 0.0)
+        # HF Spaces may return predictions as a list, handle accordingly
+        # Example: {"data": [["Rose", 0.95]]}
+        prediction_data = result.get("data", [])
+        if prediction_data and isinstance(prediction_data[0], list):
+            top_flower = prediction_data[0][0]
+            confidence = prediction_data[0][1]
+        else:
+            top_flower = "Unknown"
+            confidence = 0.0
 
         # Load class names from HF if not loaded
         classes = load_class_names()
