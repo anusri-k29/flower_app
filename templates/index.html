@@ -51,38 +51,22 @@
       max-width: 300px;
       border-radius: 10px;
     }
-
-    #result {
-      margin-top: 20px;
-      text-align: left;
-      display: inline-block;
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #eee;
-      width: 320px;
-      word-wrap: break-word;
-      font-family: monospace;
-    }
   </style>
 </head>
 <body>
   <h1>🌼 Flower Identification</h1>
   <p>Upload a flower image to identify it using the Hugging Face model.</p>
 
-  <form id="upload-form">
-    <input type="file" id="file" name="file" accept="image/*" required><br>
+  <form action="/predict" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept="image/*" required><br>
     <button type="submit">Identify Flower</button>
   </form>
 
   <img id="preview" src="#" alt="" style="display:none;">
-  <div id="result"></div>
 
   <script>
-    const form = document.getElementById('upload-form');
-    const fileInput = document.getElementById('file');
+    const fileInput = document.querySelector('input[type="file"]');
     const preview = document.getElementById('preview');
-    const resultDiv = document.getElementById('result');
 
     // Show image preview
     fileInput.addEventListener('change', () => {
@@ -90,29 +74,6 @@
       if (file) {
         preview.src = URL.createObjectURL(file);
         preview.style.display = 'block';
-      }
-    });
-
-    // Handle form submission
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const file = fileInput.files[0];
-      if (!file) return alert("Please upload an image first.");
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      resultDiv.innerHTML = "⏳ Predicting...";
-      try {
-        const response = await fetch('/predict', {
-          method: 'POST',
-          body: formData
-        });
-
-        const data = await response.json();
-        resultDiv.innerHTML = "<strong>Prediction Result:</strong><br><pre>" + JSON.stringify(data, null, 2) + "</pre>";
-      } catch (err) {
-        resultDiv.innerHTML = "<span style='color:red;'>Error: " + err.message + "</span>";
       }
     });
   </script>
