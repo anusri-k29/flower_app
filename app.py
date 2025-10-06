@@ -25,29 +25,28 @@ def predict():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
-    # Save image locally (optional, for preview)
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
-    # Prepare the image for sending to Hugging Face API
-    files = {"file": (file.filename, open(file_path, "rb"), "image/jpeg")}
-
     try:
-        response = requests.post(HF_API_URL, files=files)
+        # Convert image to base64 for HF Gradio API
+        import base64
+        with open(file_path, "rb") as f:
+            img_bytes = f.read()
+        img_b64 = "data:image/jpeg;base64," + base64.b64encode(img_bytes).decode("utf-8")
+
+        payload = {"data": [img_b64]}
+        response = requests.post(HF_API_URL, json=payload)
         response.raise_for_status()
         result = response.json()
 
-        # Optional: prettify the output
-        return render_template(
-            'result.html',
-            image_path=file_path,
-            result=result
-        )
+        return render_template('result.html', image_path=file_path, result=result)
 
     except requests.exceptions.RequestException as e:
         return jsonify({'error': f'Hugging Face API request failed: {str(e)}'})
     except Exception as e:
         return jsonify({'error': f'Server error: {str(e)}'})
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
