@@ -20,10 +20,10 @@ CLASS_NAMES_URL = "https://huggingface.co/anusrii29/plant_id/resolve/main/class_
 CLASS_NAMES = None
 
 # AWS S3 Configuration
-S3_BUCKET = "flower-identifier-bucket"
-S3_ACCESS_KEY = "YOUR_ACCESS_KEY"
-S3_SECRET_KEY = "YOUR_SECRET_KEY"
-S3_REGION = "ap-south-1"
+S3_BUCKET = "flower-id-uploads"
+S3_ACCESS_KEY = "AKIA6OCOD7IACZMYHXGQ"
+S3_SECRET_KEY = "KRWmrBe4sUpBfKuf1g6c8Tt26F4xhmBdpuUPvVj6"
+S3_REGION = "eu-north-1"
 
 # Initialize S3 client
 s3 = boto3.client(
