@@ -22,7 +22,7 @@ CLASS_NAMES = None
 # AWS S3 Configuration
 S3_BUCKET = "flower-id-uploads"
 S3_ACCESS_KEY = "AKIA6OCOD7IACZMYHXGQ"
-S3_SECRET_KEY = "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"
+S3_SECRET_KEY = "xyz"
 S3_REGION = "eu-north-1"
 
 # Initialize S3 client
